@@ -96,7 +96,7 @@ class RankHandler(tornado.web.RequestHandler):
         result["user"] = {}
         rank = (yield gen.Task(r.zrevrank, "rank:%s" % appname, uid))
         if rank != None:
-            ++rank
+            rank+=1
             pass
         result["user"]["rank"] = rank
         result["user"]["score"] = yield gen.Task(r.zscore, "rank:%s" % appname, uid)
@@ -111,8 +111,18 @@ class RankHandler(tornado.web.RequestHandler):
         uid = self.get_argument("uid", 0)
         score = int(self.get_argument("score", 0))
         r = Redis(connection_pool=CONNECTION_POOL)
+
         ok = yield gen.Task(r.zadd, "rank:%s" % appname, score, uid)
-        self.finish("post:" + str(ok))
+        result = {}
+
+        result["user"] = {}
+        rank = (yield gen.Task(r.zrevrank, "rank:%s" % appname, uid))
+        if rank != None:
+            rank+=1
+            pass
+        result["user"]["rank"] = rank
+        print result
+        self.finish(json.dumps(result))
 
     @tornado.web.asynchronous
     @gen.engine
