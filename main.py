@@ -93,18 +93,6 @@ class RankHandler(tornado.web.RequestHandler):
         result = {}
 
         result["top"] = yield gen.Task(r.zrevrange, "rank:%s" % appname, 0, 10, "withscore")
-        if uid != 0:
-            result["user"] = {}
-            rank = (yield gen.Task(r.zrevrank, "rank:%s" % appname, uid))
-            if rank != None:
-                rank+=1
-                pass
-            result["user"]["rank"] = rank
-            result["user"]["score"] = yield gen.Task(r.zscore, "rank:%s" % appname, uid)
-            count = yield gen.Task(r.zcount, "rank:%s" % appname, "-inf", "+inf")
-            if count is None:
-                count = 1
-            result["user"]["percent"] = (count - rank + 1) * 100 / count
         print result
         self.finish(json.dumps(result))
 
@@ -120,12 +108,17 @@ class RankHandler(tornado.web.RequestHandler):
         ok = yield gen.Task(r.zadd, "rank:%s" % appname, score, uid)
         result = {}
 
-        result["user"] = {}
-        rank = (yield gen.Task(r.zrevrank, "rank:%s" % appname, uid))
-        if rank != None:
-            rank+=1
-            pass
-        result["user"]["rank"] = rank
+        if uid != 0:
+            result["user"] = {}
+            rank = (yield gen.Task(r.zrevrank, "rank:%s" % appname, uid))
+            if rank != None:
+                rank+=1
+            result["user"]["rank"] = rank
+            result["user"]["score"] = yield gen.Task(r.zscore, "rank:%s" % appname, uid)
+            count = yield gen.Task(r.zcount, "rank:%s" % appname, "-inf", "+inf")
+            if count is None:
+                count = 1
+            result["user"]["percent"] = (count - rank + 1) * 100 / count
         print result
         self.finish(json.dumps(result))
 
