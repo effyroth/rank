@@ -100,6 +100,10 @@ class RankHandler(tornado.web.RequestHandler):
             pass
         result["user"]["rank"] = rank
         result["user"]["score"] = yield gen.Task(r.zscore, "rank:%s" % appname, uid)
+        count = yield gen.Task(r.zcount, "rank:%s" % appname, "-inf", "+inf")
+        if count is None:
+            count = 1
+        result["user"]["percent"] = (count - rank + 1) * 100 / count
         print result
         self.finish(json.dumps(result))
 
