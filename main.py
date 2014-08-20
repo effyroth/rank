@@ -93,7 +93,7 @@ class RankHandler(tornado.web.RequestHandler):
         result = {}
 
         result["top"] = yield gen.Task(r.zrevrange, "rank:%s" % appname, 0, 10, "withscore")
-        if uid not 0:
+        if uid != 0:
             result["user"] = {}
             rank = (yield gen.Task(r.zrevrank, "rank:%s" % appname, uid))
             if rank != None:
